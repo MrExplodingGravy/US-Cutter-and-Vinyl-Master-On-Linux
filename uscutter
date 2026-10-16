@@ -1,0 +1,24 @@
+#!/bin/sh
+# CUPS backend: send raw cutter jobs (HPGL) straight to a USB printer-class device.
+# Install: sudo install -m 700 -o root -g root uscutter /usr/lib/cups/backend/uscutter
+# Queue:   sudo lpadmin -p USCutter -E -v uscutter:/ -m raw
+
+DEVICE=/dev/usb/lp0
+
+# Called with no arguments: CUPS is asking what this backend is
+if [ $# -eq 0 ]; then
+  echo 'direct uscutter "Unknown" "USB vinyl cutter (raw HPGL)"'
+  exit 0
+fi
+
+if [ ! -w "$DEVICE" ]; then
+  echo "ERROR: $DEVICE not found or not writable (is the cutter on?)" >&2
+  exit 1
+fi
+
+# Arg 6 is the job file when CUPS passes one; otherwise the job comes on stdin
+if [ -n "$6" ]; then
+  cat "$6" > "$DEVICE"
+else
+  cat > "$DEVICE"
+fi
